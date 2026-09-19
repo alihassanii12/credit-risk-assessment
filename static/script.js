@@ -2,8 +2,6 @@
   // Elements
   const form = document.getElementById("riskForm");
   const formSlider = document.getElementById("formSlider");
-  const prevBtn = document.getElementById("prevBtn");
-  const nextBtn = document.getElementById("nextBtn");
   const errorNote = document.getElementById("errorNote");
   const resultsContainer = document.getElementById("resultsContainer");
   const newAssessmentBtn = document.getElementById("newAssessmentBtn");
@@ -30,18 +28,22 @@
   }
 
   function setupEventListeners() {
-    // Handle multiple prev/next buttons (one in each card)
-    const prevBtns = document.querySelectorAll('#prevBtn');
-    const nextBtns = document.querySelectorAll('#nextBtn');
+    // Handle prev/next buttons using event delegation
+    document.addEventListener('click', function(e) {
+      if (e.target.classList.contains('prev-btn')) {
+        goToPrevStep();
+      } else if (e.target.classList.contains('next-btn')) {
+        goToNextStep();
+      }
+    });
     
-    prevBtns.forEach(btn => btn.addEventListener('click', goToPrevStep));
-    nextBtns.forEach(btn => btn.addEventListener('click', goToNextStep));
-    
-    newAssessmentBtn.addEventListener('click', resetAssessment);
+    if (newAssessmentBtn) {
+      newAssessmentBtn.addEventListener('click', resetAssessment);
+    }
     
     // Auto-calculate loan to income ratio
-    incomeInput.addEventListener('input', recalculatePercent);
-    amountInput.addEventListener('input', recalculatePercent);
+    if (incomeInput) incomeInput.addEventListener('input', recalculatePercent);
+    if (amountInput) amountInput.addEventListener('input', recalculatePercent);
 
     // Form validation on input change
     const inputs = form.querySelectorAll('input, select');
@@ -52,28 +54,28 @@
   }
 
   function checkServiceStatus() {
-    apiDot.style.background = '#f59e0b';
-    apiStatusText.textContent = 'checking service...';
+    if (apiDot) apiDot.style.background = '#f59e0b';
+    if (apiStatusText) apiStatusText.textContent = 'checking service...';
     
     fetch("/openapi.json", { method: "GET" })
       .then((res) => {
         if (res.ok) {
-          apiDot.style.background = 'var(--success)';
-          apiStatusText.textContent = 'service ready';
+          if (apiDot) apiDot.style.background = 'var(--success)';
+          if (apiStatusText) apiStatusText.textContent = 'service ready';
         } else {
           throw new Error('service unavailable');
         }
       })
       .catch(() => {
-        apiDot.style.background = 'var(--danger)';
-        apiStatusText.textContent = 'service unavailable';
+        if (apiDot) apiDot.style.background = 'var(--danger)';
+        if (apiStatusText) apiStatusText.textContent = 'service unavailable';
       });
   }
 
   function recalculatePercent() {
-    const income = parseFloat(incomeInput.value) || 0;
-    const amount = parseFloat(amountInput.value) || 0;
-    if (income > 0 && amount >= 0) {
+    const income = parseFloat(incomeInput?.value) || 0;
+    const amount = parseFloat(amountInput?.value) || 0;
+    if (income > 0 && amount >= 0 && percentInput) {
       percentInput.value = (amount / income).toFixed(2);
     }
   }
@@ -99,25 +101,25 @@
     });
 
     // Update slider position
-    const translateX = -((currentStep - 1) * 33.333);
-    formSlider.style.transform = `translateX(${translateX}%)`;
+    if (formSlider) {
+      const translateX = -((currentStep - 1) * 33.333);
+      formSlider.style.transform = `translateX(${translateX}%)`;
+    }
 
     // Update navigation buttons visibility in each step
-    const allPrevBtns = document.querySelectorAll('#prevBtn');
-    const allNextBtns = document.querySelectorAll('#nextBtn');
+    const allPrevBtns = document.querySelectorAll('.prev-btn');
+    const allNextBtns = document.querySelectorAll('.next-btn');
     
-    allPrevBtns.forEach((btn, index) => {
-      const stepNum = index + 1;
-      if (stepNum === 1) {
+    allPrevBtns.forEach((btn) => {
+      if (currentStep === 1) {
         btn.style.visibility = 'hidden';
       } else {
         btn.style.visibility = 'visible';
       }
     });
     
-    allNextBtns.forEach((btn, index) => {
-      const stepNum = index + 1;
-      if (stepNum === totalSteps) {
+    allNextBtns.forEach((btn) => {
+      if (currentStep === totalSteps) {
         btn.innerHTML = `Assess Risk <i data-feather="check" class="btn-icon"></i>`;
       } else {
         btn.innerHTML = `Next <i data-feather="chevron-right" class="btn-icon"></i>`;
@@ -132,6 +134,8 @@
 
   function validateCurrentStep() {
     const currentStepElement = document.querySelector(`.form-step[data-step="${currentStep}"]`);
+    if (!currentStepElement) return true;
+    
     const inputs = currentStepElement.querySelectorAll('input[required], select[required]');
     let isValid = true;
 
@@ -189,11 +193,13 @@
   }
 
   function showError(message) {
-    errorNote.textContent = message;
-    errorNote.classList.add('show');
-    setTimeout(() => {
-      errorNote.classList.remove('show');
-    }, 5000);
+    if (errorNote) {
+      errorNote.textContent = message;
+      errorNote.classList.add('show');
+      setTimeout(() => {
+        errorNote.classList.remove('show');
+      }, 5000);
+    }
   }
 
   function goToPrevStep() {
@@ -217,24 +223,36 @@
 
   function resetAssessment() {
     currentStep = 1;
-    form.reset();
-    resultsContainer.classList.remove('show');
+    if (form) form.reset();
+    if (resultsContainer) resultsContainer.classList.remove('show');
     
     // Show form elements again
-    document.querySelector('.form-container').style.display = 'block';
-    document.querySelector('.step-progress').style.display = 'flex';
-    document.querySelector('.step-navigation').style.display = 'flex';
+    const formContainer = document.querySelector('.form-container');
+    const stepProgress = document.querySelector('.step-progress');
+    const stepNavigation = document.querySelector('.step-navigation');
+    
+    if (formContainer) formContainer.style.display = 'block';
+    if (stepProgress) stepProgress.style.display = 'flex';
+    if (stepNavigation) stepNavigation.style.display = 'flex';
     
     updateStepDisplay();
     recalculatePercent();
     
     // Reset form values to defaults
-    document.getElementById('person_age').value = '30';
-    document.getElementById('person_income').value = '600000';
-    document.getElementById('person_emp_length').value = '5';
-    document.getElementById('loan_amnt').value = '100000';
-    document.getElementById('loan_int_rate').value = '11.5';
-    document.getElementById('cb_person_cred_hist_length').value = '6';
+    const ageInput = document.getElementById('person_age');
+    const incomeInputReset = document.getElementById('person_income');
+    const empLengthInput = document.getElementById('person_emp_length');
+    const loanAmtInput = document.getElementById('loan_amnt');
+    const intRateInput = document.getElementById('loan_int_rate');
+    const credHistInput = document.getElementById('cb_person_cred_hist_length');
+    
+    if (ageInput) ageInput.value = '30';
+    if (incomeInputReset) incomeInputReset.value = '600000';
+    if (empLengthInput) empLengthInput.value = '5';
+    if (loanAmtInput) loanAmtInput.value = '100000';
+    if (intRateInput) intRateInput.value = '11.5';
+    if (credHistInput) credHistInput.value = '6';
+    
     recalculatePercent();
   }
 
@@ -244,22 +262,24 @@
     }
 
     // Show loading state on current step's next button
-    const currentNextBtn = document.querySelector(`.form-step[data-step="${currentStep}"] #nextBtn`);
-    currentNextBtn.classList.add('loading');
-    currentNextBtn.disabled = true;
+    const currentNextBtn = document.querySelector(`.form-step[data-step="${currentStep}"] .next-btn`);
+    if (currentNextBtn) {
+      currentNextBtn.classList.add('loading');
+      currentNextBtn.disabled = true;
+    }
 
     const payload = {
-      person_age: parseInt(document.getElementById("person_age").value, 10),
-      person_income: parseFloat(incomeInput.value),
-      person_home_ownership: document.getElementById("person_home_ownership").value,
-      person_emp_length: parseFloat(document.getElementById("person_emp_length").value),
-      loan_intent: document.getElementById("loan_intent").value,
-      loan_grade: document.getElementById("loan_grade").value,
-      loan_amnt: parseFloat(amountInput.value),
-      loan_int_rate: parseFloat(document.getElementById("loan_int_rate").value),
-      loan_percent_income: parseFloat(percentInput.value),
-      cb_person_default_on_file: document.getElementById("cb_person_default_on_file").value,
-      cb_person_cred_hist_length: parseInt(document.getElementById("cb_person_cred_hist_length").value, 10),
+      person_age: parseInt(document.getElementById("person_age")?.value || 30, 10),
+      person_income: parseFloat(incomeInput?.value || 600000),
+      person_home_ownership: document.getElementById("person_home_ownership")?.value || "RENT",
+      person_emp_length: parseFloat(document.getElementById("person_emp_length")?.value || 5),
+      loan_intent: document.getElementById("loan_intent")?.value || "PERSONAL",
+      loan_grade: document.getElementById("loan_grade")?.value || "B",
+      loan_amnt: parseFloat(amountInput?.value || 100000),
+      loan_int_rate: parseFloat(document.getElementById("loan_int_rate")?.value || 11.5),
+      loan_percent_income: parseFloat(percentInput?.value || 0.17),
+      cb_person_default_on_file: document.getElementById("cb_person_default_on_file")?.value || "N",
+      cb_person_cred_hist_length: parseInt(document.getElementById("cb_person_cred_hist_length")?.value || 6, 10),
     };
 
     try {
@@ -281,9 +301,10 @@
     } catch (err) {
       showError(`Assessment failed: ${err.message || "Please check if the service is running."}`);
     } finally {
-      const currentNextBtn = document.querySelector(`.form-step[data-step="${currentStep}"] #nextBtn`);
-      currentNextBtn.classList.remove('loading');
-      currentNextBtn.disabled = false;
+      if (currentNextBtn) {
+        currentNextBtn.classList.remove('loading');
+        currentNextBtn.disabled = false;
+      }
     }
   }
 
@@ -293,10 +314,14 @@
     const isHighRisk = data.default_prediction === 1;
 
     // Hide form and show results
-    document.querySelector('.form-container').style.display = 'none';
-    document.querySelector('.step-progress').style.display = 'none';
-    document.querySelector('.step-navigation').style.display = 'none';
-    resultsContainer.classList.add('show');
+    const formContainer = document.querySelector('.form-container');
+    const stepProgress = document.querySelector('.step-progress');
+    const stepNavigation = document.querySelector('.step-navigation');
+    
+    if (formContainer) formContainer.style.display = 'none';
+    if (stepProgress) stepProgress.style.display = 'none';
+    if (stepNavigation) stepNavigation.style.display = 'none';
+    if (resultsContainer) resultsContainer.classList.add('show');
 
     // Update result card with icons
     const resultCard = document.getElementById('resultCard');
@@ -305,37 +330,50 @@
     const resultPercentage = document.getElementById('resultPercentage');
     const resultSubtitle = document.getElementById('resultSubtitle');
 
-    if (isHighRisk) {
-      resultCard.className = 'result-card high-risk';
-      resultIcon.setAttribute('data-feather', 'alert-triangle');
-      resultIcon.classList.add('danger');
-      resultTitle.textContent = 'HIGH RISK';
-      resultSubtitle.textContent = 'Not Recommended for Approval';
-    } else {
-      resultCard.className = 'result-card low-risk';
-      resultIcon.setAttribute('data-feather', 'shield-check');
-      resultIcon.classList.add('success');
-      resultTitle.textContent = 'LOW RISK';
-      resultSubtitle.textContent = 'Suitable for Approval';
+    if (resultCard && resultIcon && resultTitle && resultPercentage && resultSubtitle) {
+      if (isHighRisk) {
+        resultCard.className = 'result-card high-risk';
+        resultIcon.setAttribute('data-feather', 'alert-triangle');
+        resultIcon.classList.add('danger');
+        resultTitle.textContent = 'HIGH RISK';
+        resultSubtitle.textContent = 'Not Recommended for Approval';
+      } else {
+        resultCard.className = 'result-card low-risk';
+        resultIcon.setAttribute('data-feather', 'shield-check');
+        resultIcon.classList.add('success');
+        resultTitle.textContent = 'LOW RISK';
+        resultSubtitle.textContent = 'Suitable for Approval';
+      }
+
+      resultPercentage.textContent = `${probabilityPct}%`;
     }
 
-    resultPercentage.textContent = `${probabilityPct}%`;
-
     // Update details
-    document.getElementById('factProb').textContent = `${probabilityPct}%`;
-    document.getElementById('factThreshold').textContent = `${thresholdPct}%`;
-    document.getElementById('factResult').textContent = data.Result;
-    document.getElementById('factRecommendation').textContent = isHighRisk ? 'REJECT' : 'APPROVE';
+    const factProb = document.getElementById('factProb');
+    const factThreshold = document.getElementById('factThreshold');
+    const factResult = document.getElementById('factResult');
+    const factRecommendation = document.getElementById('factRecommendation');
+    
+    if (factProb) factProb.textContent = `${probabilityPct}%`;
+    if (factThreshold) factThreshold.textContent = `${thresholdPct}%`;
+    if (factResult) factResult.textContent = data.Result;
+    if (factRecommendation) factRecommendation.textContent = isHighRisk ? 'REJECT' : 'APPROVE';
 
     // Update recommendation icon
-    const recommendationBox = document.querySelector('#factRecommendation').closest('.detail-box');
-    const recommendationIcon = recommendationBox.querySelector('.detail-icon');
-    if (isHighRisk) {
-      recommendationIcon.setAttribute('data-feather', 'x-circle');
-      recommendationIcon.style.color = 'var(--danger)';
-    } else {
-      recommendationIcon.setAttribute('data-feather', 'check-circle');
-      recommendationIcon.style.color = 'var(--success)';
+    if (factRecommendation) {
+      const recommendationBox = factRecommendation.closest('.detail-box');
+      if (recommendationBox) {
+        const recommendationIcon = recommendationBox.querySelector('.detail-icon');
+        if (recommendationIcon) {
+          if (isHighRisk) {
+            recommendationIcon.setAttribute('data-feather', 'x-circle');
+            recommendationIcon.style.color = 'var(--danger)';
+          } else {
+            recommendationIcon.setAttribute('data-feather', 'check-circle');
+            recommendationIcon.style.color = 'var(--success)';
+          }
+        }
+      }
     }
 
     // Re-initialize feather icons
@@ -344,6 +382,8 @@
     }
 
     // Scroll to results
-    resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (resultsContainer) {
+      resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   }
 })();
