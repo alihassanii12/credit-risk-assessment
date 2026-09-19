@@ -247,9 +247,9 @@
     const credHistInput = document.getElementById('cb_person_cred_hist_length');
     
     if (ageInput) ageInput.value = '30';
-    if (incomeInputReset) incomeInputReset.value = '600000';
+    if (incomeInputReset) incomeInputReset.value = '1200000';
     if (empLengthInput) empLengthInput.value = '5';
-    if (loanAmtInput) loanAmtInput.value = '100000';
+    if (loanAmtInput) loanAmtInput.value = '500000';
     if (intRateInput) intRateInput.value = '11.5';
     if (credHistInput) credHistInput.value = '6';
     
@@ -270,14 +270,14 @@
 
     const payload = {
       person_age: parseInt(document.getElementById("person_age")?.value || 30, 10),
-      person_income: parseFloat(incomeInput?.value || 600000),
+      person_income: parseFloat(incomeInput?.value || 1200000),
       person_home_ownership: document.getElementById("person_home_ownership")?.value || "RENT",
       person_emp_length: parseFloat(document.getElementById("person_emp_length")?.value || 5),
       loan_intent: document.getElementById("loan_intent")?.value || "PERSONAL",
       loan_grade: document.getElementById("loan_grade")?.value || "B",
-      loan_amnt: parseFloat(amountInput?.value || 100000),
+      loan_amnt: parseFloat(amountInput?.value || 500000),
       loan_int_rate: parseFloat(document.getElementById("loan_int_rate")?.value || 11.5),
-      loan_percent_income: parseFloat(percentInput?.value || 0.17),
+      loan_percent_income: parseFloat(percentInput?.value || 0.42),
       cb_person_default_on_file: document.getElementById("cb_person_default_on_file")?.value || "N",
       cb_person_cred_hist_length: parseInt(document.getElementById("cb_person_cred_hist_length")?.value || 6, 10),
     };
